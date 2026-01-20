@@ -23,7 +23,7 @@ public class ElectronicStoreApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         this.stage = primaryStage;
-        loadData(); // Загрузка данных при запуске
+        loadData();
         showLogin();
     }
 
