@@ -19,7 +19,7 @@ public class ElectronicStoreApp extends Application {
     private List<Product> products = new ArrayList<>();
     private Stage stage;
     private User currentUser;
-//
+//smth
     @Override
     public void start(Stage primaryStage) {
         this.stage = primaryStage;
