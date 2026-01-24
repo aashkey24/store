@@ -3,6 +3,8 @@ package com.store.main;
 import com.store.model.*;
 import com.store.util.IOHandler;
 import com.store.view.AdminView;
+import com.store.view.CashierView;
+import com.store.view.ManagerView;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -115,69 +117,76 @@ public class ElectronicStoreApp extends Application {
     private void showDashboard() {
         BorderPane root = new BorderPane();
 
-        // Боковая панель
+        // --- ЛЕВОЕ МЕНЮ (SIDEBAR) ---
         VBox sidebar = new VBox(10);
         sidebar.setPadding(new Insets(15));
         sidebar.setStyle("-fx-background-color: #2c3e50;");
-        sidebar.setPrefWidth(220);
+        sidebar.setPrefWidth(200);
 
-        Label welcome = new Label("Welcome,\n" + currentUser.getFullName());
+        Label welcome = new Label("User: " + currentUser.getUsername());
         welcome.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        sidebar.getChildren().add(welcome);
 
-        Label role = new Label("[" + currentUser.getRole() + "]");
-        role.setStyle("-fx-text-fill: #bdc3c7;");
-
-        sidebar.getChildren().addAll(welcome, role, new Separator());
-
-        // Центральная часть
+        // ЦЕНТРАЛЬНАЯ ЧАСТЬ (Меняется при нажатии кнопок)
         StackPane content = new StackPane();
-        content.getChildren().add(new Label("Select an option from the sidebar."));
+        content.getChildren().add(new Label("Welcome! Select an option from the menu."));
 
-        // Логика кнопок для разных ролей
+        // КНОПКИ ДЛЯ АДМИНА
         if (currentUser instanceof Admin) {
-            Button btn = createNavButton("Manage Staff");
-            btn.setOnAction(e -> {
-                // Создаем объект AdminView и передаем ему списки
-                AdminView adminView = new AdminView(users, products);
-                content.getChildren().setAll(adminView.getView());
+            Button btnAdmin = createNavButton("Staff & Finance");
+            btnAdmin.setOnAction(e -> {
+                AdminView view = new AdminView(users, products);
+                content.getChildren().setAll(view.getView());
             });
-            sidebar.getChildren().add(btn);
+            sidebar.getChildren().add(btnAdmin);
         }
 
+        // КНОПКИ ДЛЯ МЕНЕДЖЕРА (Или Админа)
         if (currentUser instanceof Manager || currentUser instanceof Admin) {
-            Button btn = createNavButton("Inventory Management");
-            btn.setOnAction(e -> content.getChildren().setAll(createManagerPane()));
-            sidebar.getChildren().add(btn);
+            Button btnManager = createNavButton("Inventory (Manager)");
+            btnManager.setOnAction(e -> {
+                ManagerView view = new ManagerView(products);
+                content.getChildren().setAll(view.getView());
+            });
+            sidebar.getChildren().add(btnManager);
         }
 
+        // КНОПКИ ДЛЯ КАССИРА (Или Админа)
         if (currentUser instanceof Cashier || currentUser instanceof Admin) {
-            Button btn = createNavButton("New Sale (POS)");
-            btn.setOnAction(e -> content.getChildren().setAll(createCashierPane()));
-            sidebar.getChildren().add(btn);
+            Button btnCashier = createNavButton("POS / Sale (Cashier)");
+            btnCashier.setOnAction(e -> {
+                // Передаем имя текущего кассира для чека
+                CashierView view = new CashierView(products, currentUser.getFullName());
+                content.getChildren().setAll(view.getView());
+            });
+            sidebar.getChildren().add(btnCashier);
         }
 
+        // КНОПКА ВЫХОДА
         Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
+        VBox.setVgrow(spacer, Priority.ALWAYS); // Толкает кнопку вниз
         Button logout = new Button("Logout");
         logout.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white;");
         logout.setMaxWidth(Double.MAX_VALUE);
         logout.setOnAction(e -> showLogin());
 
         sidebar.getChildren().addAll(spacer, logout);
+
         root.setLeft(sidebar);
         root.setCenter(content);
 
-        stage.setScene(new Scene(root, 950, 650));
+        stage.setScene(new Scene(root, 900, 600));
         stage.setTitle("Dashboard - " + currentUser.getRole());
     }
 
+    // Вспомогательный метод для красоты кнопок
     private Button createNavButton(String text) {
         Button btn = new Button(text);
         btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setStyle("-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: center-left; -fx-padding: 10;");
+        btn.setStyle("-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: center-left;");
         return btn;
     }
+
 
 
 

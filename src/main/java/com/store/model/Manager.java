@@ -29,4 +29,5 @@ public class Manager extends User {
     public String toString() {
         return getFullName() + " (Manager: " + sector + ")";
     }
+
 }

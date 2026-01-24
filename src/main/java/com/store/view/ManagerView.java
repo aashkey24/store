@@ -1,68 +1,91 @@
 package com.store.view;
 
+import com.store.model.Product;
+import com.store.util.IOHandler;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ManagerView {
-    private Stage stage;
 
-    public ManagerView(Stage stage) {
-        this.stage = stage;
+    private List<Product> products;
+
+    public ManagerView(List<Product> products) {
+        this.products = products;
     }
 
-    public void showLoginScene(javafx.event.EventHandler<javafx.event.ActionEvent> loginHandler,
-                               TextField userField, PasswordField passField) {
-        VBox layout = new VBox(15);
-        layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(50));
-        layout.setStyle("-fx-background-color: #2c3e50;");
+    public VBox getView() {
+        VBox pane = new VBox(15);
+        pane.setPadding(new Insets(20));
 
-        Label title = new Label("ELECTRONIC STORE");
-        title.setStyle("-fx-font-size: 26px; -fx-text-fill: white; -fx-font-weight: bold;");
+        Label header = new Label("MANAGER PANEL: Inventory");
+        header.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
-        userField.setPromptText("Username");
-        userField.setMaxWidth(250);
-        passField.setPromptText("Password");
-        passField.setMaxWidth(250);
+        // Таблица товаров
+        ListView<Product> productList = new ListView<>(FXCollections.observableArrayList(products));
 
-        Button loginBtn = new Button("Login");
-        loginBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px;");
-        loginBtn.setPrefWidth(250);
-        loginBtn.setOnAction(loginHandler);
+        // Поля для добавления
+        TextField pName = new TextField(); pName.setPromptText("Product Name");
+        TextField pPrice = new TextField(); pPrice.setPromptText("Price");
+        TextField pStock = new TextField(); pStock.setPromptText("Stock Qty");
+        TextField pSupplier = new TextField(); pSupplier.setPromptText("Supplier");
 
-        layout.getChildren().addAll(title, new Label(" "), userField, passField, loginBtn);
+        Button addBtn = new Button("Add / Restock");
+        addBtn.setOnAction(e -> {
+            try {
+                String name = pName.getText();
+                double price = Double.parseDouble(pPrice.getText());
+                int stock = Integer.parseInt(pStock.getText());
 
-        Scene scene = new Scene(layout, 450, 400);
-        stage.setScene(scene);
-        stage.setTitle("Login - Electronic Store");
-        stage.show();
+                // Проверка: если товар уже есть, просто обновляем количество
+                boolean exists = false;
+                for (Product p : products) {
+                    if (p.getName().equalsIgnoreCase(name)) {
+                        p.setStockQuantity(p.getStockQuantity() + stock);
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists) {
+                    products.add(new Product(name, price, stock));
+                }
+
+                IOHandler.save("products.dat", products);
+                productList.setItems(FXCollections.observableArrayList(products));
+                showAlert("Success", "Inventory updated!");
+
+            } catch (NumberFormatException ex) {
+                showAlert("Error", "Price and Stock must be numbers!");
+            }
+        });
+
+        // БОНУС: Кнопка проверки товаров, которые заканчиваются (Requirement: < 3 units)
+        Button checkStockBtn = new Button("Check Low Stock Alerts");
+        checkStockBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white;");
+        checkStockBtn.setOnAction(e -> {
+            List<String> lowStockItems = products.stream()
+                    .filter(p -> p.getStockQuantity() < 3)
+                    .map(p -> p.getName() + " (" + p.getStockQuantity() + " left)")
+                    .collect(Collectors.toList());
+
+            if (lowStockItems.isEmpty()) {
+                showAlert("Stock Status", "All items are well stocked.");
+            } else {
+                showAlert("WARNING: LOW STOCK", "Refill needed for:\n" + String.join("\n", lowStockItems));
+            }
+        });
+
+        pane.getChildren().addAll(header, productList, new Label("New Product / Restock:"),
+                pName, pPrice, pStock, pSupplier, addBtn, new Separator(), checkStockBtn);
+        return pane;
     }
 
-    public void showMainDashboard(String role, String name, Pane content) {
-        BorderPane root = new BorderPane();
-        VBox sidebar = new VBox(10);
-        sidebar.setPadding(new Insets(20));
-        sidebar.setStyle("-fx-background-color: #34495e;");
-        sidebar.setPrefWidth(200);
-
-        Label userLabel = new Label("User: " + name);
-        Label roleLabel = new Label("Role: " + role);
-        userLabel.setStyle("-fx-text-fill: #ecf0f1; -fx-font-weight: bold;");
-        roleLabel.setStyle("-fx-text-fill: #bdc3c7;");
-
-        Button logoutBtn = new Button("Logout");
-        logoutBtn.setMaxWidth(Double.MAX_VALUE);
-
-        sidebar.getChildren().addAll(userLabel, roleLabel, new Separator(), logoutBtn);
-
-        root.setLeft(sidebar);
-        root.setCenter(content);
-
-        Scene scene = new Scene(root, 1000, 700);
-        stage.setScene(scene);
+    private void showAlert(String title, String content) {
+        new Alert(Alert.AlertType.INFORMATION, content).showAndWait();
     }
 }
