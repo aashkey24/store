@@ -36,7 +36,7 @@ public class ElectronicStoreApp extends Application {
             users = loadedUsers;
         } else {
             // Создаем ВСЕХ сотрудников по умолчанию
-            users.add(new Admin("admin", "admin1234", "System Administrator"));
+            users.add(new Admin("admin", "1234", "System Administrator"));
             users.add(new Manager("manager", "manager123", "Ilias Manager"));
             users.add(new Cashier("cashier", "cashier123", "Abdulaziz Cashier"));
 
