@@ -24,36 +24,37 @@ public class DashboardView {
         sidebar = new VBox(10);
         sidebar.setPadding(new Insets(15));
         sidebar.setStyle("-fx-background-color: #2c3e50;");
-        sidebar.setPrefWidth(220); // Чуть шире для логотипа
+        sidebar.setPrefWidth(220);
 
-        // --- ЛОГОТИП В МЕНЮ ---
+        // --- ЛОГОТИП (ВСТАВКА) ---
         ImageView menuLogo = new ImageView();
         try {
+            // Убедись, что импорты добавлены: import javafx.scene.image.*;
             Image img = new Image(getClass().getResourceAsStream("/com/store/electronicstoreapp/img.png"));
             menuLogo.setImage(img);
-            menuLogo.setFitWidth(100); // Ширина логотипа в меню
+            menuLogo.setFitWidth(100);
             menuLogo.setPreserveRatio(true);
 
-            // Центрируем логотип
             HBox logoContainer = new HBox(menuLogo);
             logoContainer.setAlignment(javafx.geometry.Pos.CENTER);
             logoContainer.setPadding(new Insets(0, 0, 10, 0));
 
             sidebar.getChildren().add(logoContainer);
         } catch (Exception e) {
-            // Игнорируем, если нет картинки
+            // Игнорируем ошибку, если картинки нет
         }
-        Label userLabel = new Label("User: " + user);
-        Label welcome = new Label("Welcome,\n" + user.getFullName());
+        // -------------------------
+
+        // ИСПРАВЛЕНИЕ ОШИБКИ ЗДЕСЬ:
+        Label welcome = new Label("Welcome,\n" + user.getFullName()); // Используем user.getFullName()
         welcome.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
 
-        Label role = new Label("[" + user.getRole() + "]");
-        role.setStyle("-fx-text-fill: #bdc3c7; -fx-font-size: 12px;");
+        Label roleLabel = new Label("[" + user.getRole() + "]"); // Используем user.getRole()
+        roleLabel.setStyle("-fx-text-fill: #bdc3c7; -fx-font-size: 12px;");
 
-        sidebar.getChildren().addAll(welcome, role, new Separator());
+        sidebar.getChildren().addAll(welcome, roleLabel, new Separator());
 
-        // --- КНОПКИ МЕНЮ (Создаются, но логика - в контроллере) ---
-        // Админ видит всё, Менеджер - склад, Кассир - продажи
+        // --- ДАЛЕЕ КОД КНОПОК ОСТАЕТСЯ ТЕМ ЖЕ ---
         String r = user.getRole();
 
         if (r.equals("Administrator")) {
@@ -68,7 +69,6 @@ public class DashboardView {
             createNavButton("New Sale (POS)");
         }
 
-        // Spacer чтобы отодвинуть Logout вниз
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
@@ -78,7 +78,6 @@ public class DashboardView {
 
         sidebar.getChildren().addAll(spacer, logoutBtn);
 
-        // --- CENTER CONTENT ---
         contentArea = new StackPane();
         contentArea.setPadding(new Insets(20));
         contentArea.getChildren().add(new Label("Select an option from the sidebar to begin."));
